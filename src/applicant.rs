@@ -1,4 +1,5 @@
-
+use std::fmt;
+#[derive(Debug)]
 pub struct Applicant {
 	company_name: Vec<String>,
 	applicant_name: String,
@@ -73,6 +74,57 @@ impl Applicant {
 
 	pub fn set_applicant_skills(&mut self, applicant_skills: Vec<String>) {
 		self.applicant_skills = applicant_skills;
+	}
+}
+
+
+impl Clone for Applicant {
+	fn clone(&self) -> Self {
+		Applicant::from(
+			self.get_company_name().clone(),
+			self.get_applicant_name(),
+			self.get_applicant_gpa(),
+			self.get_applicant_college(),
+			self.get_applicant_skills().clone(),
+		)
+	}
+}
+
+impl PartialEq for Applicant {
+	fn eq(&self, other: &Self) -> bool {
+		self.get_company_name() == other.get_company_name() 
+		&& self.get_applicant_name() == other.get_applicant_name()
+		&& self.get_applicant_gpa() == other.get_applicant_gpa()
+		&& self.get_applicant_college() == other.get_applicant_college()
+		&& self.get_applicant_skills() == other.get_applicant_skills()
+	}
+}
+
+impl fmt::Display for Applicant {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		
+		let company_name = self.get_company_name()
+			.iter()
+			.map(|company| company.as_str())
+			.collect::<Vec<&str>>()
+			.join(", ");
+
+		let applicant_name: &str = self.get_applicant_name();
+		let applicant_gpa: f64 = self.get_applicant_gpa();
+		let applicant_college: &str = self.get_applicant_college();
+
+		let applicant_skills= self.get_applicant_skills()
+			.iter()
+			.map(|skill| skill.as_str())
+			.collect::<Vec<&str>>()
+			.join(", ");
+
+		write!(f, "{:<40} {:<20} {:<6} {:<20} {:<40}",
+			company_name,
+			applicant_name,
+			applicant_gpa,
+			applicant_college,
+			applicant_skills)
 	}
 }
 
@@ -236,7 +288,51 @@ mod tests {
 		applicant.set_applicant_skills(original_skills.clone());
 		assert_eq!(applicant.get_applicant_skills(), &original_skills);
 
-		applicant.set_applicant_skills(current_skills.clone());
+	 	applicant.set_applicant_skills(current_skills.clone());
 		assert_eq!(applicant.get_applicant_skills(), &current_skills);
 	}
+
+
+	#[test]
+	fn compare_after_clone() {
+		let applicant1 = setup();
+		let applicant2 = applicant1.clone();
+		assert_eq!(applicant1, applicant2);
+	}
+
+	#[test]
+	fn compare_equal() {
+		let applicant1 = setup();
+		let applicant2 = Applicant::from(
+			vec!["Google".to_string(), "Amazon".to_string(), "Facebook".to_string()],
+			"Tommy",
+			3.69,
+			"Stony Brook",
+			vec!["java".to_string(), "python".to_string()]
+		);
+		assert_eq!(applicant1, applicant2);
+	}
+
+	#[test]
+	fn compare_not_equal() {
+		let applicant1 = setup();
+		let applicant2 = Applicant::from(
+			vec!["Google".to_string(), "amz".to_string(), "Facebook".to_string()],
+			"Tommy",
+			3.69,
+			"Stony Brook",
+			vec!["java".to_string(), "python".to_string()]
+		);
+		assert_ne!(applicant1, applicant2);
+	}
+
+	#[test]
+	fn test_clone_independecy() {
+		let applicant1 = setup();
+		let mut applicant2 = applicant1.clone();
+		// modify applicant2
+		applicant2.set_applicant_gpa(2.0);
+		assert_ne!(applicant1, applicant2);
+	}
+
 }
