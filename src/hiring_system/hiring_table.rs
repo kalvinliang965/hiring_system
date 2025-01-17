@@ -1,4 +1,3 @@
-
 use super::applicant::Applicant;
 
 pub struct HiringTable {

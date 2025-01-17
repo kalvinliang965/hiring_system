@@ -1,19 +1,11 @@
-mod applicant;
-mod hiring_table;
+mod hiring_system;
 
-pub use applicant::Applicant;
-pub use hiring_table::HiringTable; 
+pub use hiring_system::Applicant;
+pub use hiring_system::HiringTable; 
 
 pub fn run() -> Result<(), String> {
-	let applicant = Applicant::from(
-		vec!["Facebook".to_string()],
-		"Mark Zuck",
-		3.99,
-		"Harvard",
-		vec!["Business Management".to_string()]
-	);
-
-	println!("{}", applicant);
-	todo!();
+	if let Err(e) = hiring_system::main() {
+		return Err(e);
+	}
 	Ok(())
 }
