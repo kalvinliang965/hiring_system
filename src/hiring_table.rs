@@ -25,19 +25,24 @@ impl Hiring_Table {
 	}
 
 	fn size(&self) -> u64 {
-		todo!();
+		self.data.len()
 	}
 
-	fn addApplicant(newApplicant: Applicant) {
-		todo!();
+	fn addApplicant(&mut self, newApplicant: Applicant) {
+		self.data.push(newApplicant);
 	}
 
-	fn removeApplicant(name: String) {
-		todo!();
+	fn removeApplicant(&mut self, name: &str) {
+		self.data.retain(|&applicant| applicant.name != name);
 	}
 
-	fn getApplicant(name: String) -> &Applicant {
-		todo!();
+	fn getApplicant(&self, name: String) -> Option<&Applicant> {
+		for applicant in self.data {
+			if applicant.name == name {
+				return Some(applicant)
+			}
+		}
+		None
 	}
 	
 	fn printApplicantTable() {
@@ -50,4 +55,17 @@ impl Clone for Hiring_Table {
 	fn clone() {
 		todo!();
 	}
+}
+
+#[cfg(test)]
+mod tests {
+	
+	use super::*;
+
+	#[test]
+	fn construct_hiring_table() {
+		let hiring_table = Hiring_Table::new();
+		assert_eq!(hiring_table.data, Vec::new())
+	}
+
 }
