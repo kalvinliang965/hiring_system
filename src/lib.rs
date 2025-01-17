@@ -1,6 +1,8 @@
 mod applicant;
+mod hiring_table;
 
 pub use applicant::Applicant;
+pub use hiring_table::HiringTable; 
 
 pub fn run() -> Result<(), String> {
 	let applicant = Applicant::from(
