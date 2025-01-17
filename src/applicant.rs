@@ -32,6 +32,24 @@ impl Applicant {
 			applicant_skills,
 		}
 	}
+	pub fn from_primative(company_name: &[&str], applicant_name: &str,
+			applicant_gpa: f64, applicant_college: &str
+			,applicant_skills: &[&str]) -> Self {
+
+		Applicant {
+			company_name: company_name.iter()
+					.map(|&name| name.to_string())
+					.collect::<Vec<String>>(),
+			applicant_name: String::from(applicant_name),
+			applicant_gpa,
+			applicant_college: String::from(applicant_college),
+			applicant_skills: applicant_skills.iter()
+					.map(|&skill| skill.to_string())
+					.collect::<Vec<String>>(),
+		}
+	}
+
+
 
 	// getters
 	pub fn get_company_name(&self) -> &Vec<String> {
@@ -165,12 +183,21 @@ mod tests {
 	
 	
 	fn setup() -> Applicant {
-		Applicant::from(
-			vec!["Google".to_string(), "Amazon".to_string(), "Facebook".to_string()],
+		// Applicant::from(
+		//	vec!["Google".to_string(), "Amazon".to_string(), 
+		//			"Facebook".to_string()],
+		//	"Tommy",
+		//	3.69,
+		//	"Stony Brook",
+		//	vec!["java".to_string(), "python".to_string()]
+		// )
+
+		Applicant::from_primative(
+			&["Google", "Amazon", "Facebook"],
 			"Tommy",
 			3.69,
 			"Stony Brook",
-			vec!["java".to_string(), "python".to_string()]
+			&["java", "python"],
 		)
 	}
 	// testing getters
@@ -234,42 +261,42 @@ mod tests {
 	fn set_applicant_name() {
 		let mut applicant = Applicant::new();
 		
-		const original_name: &str = "original name";
-		const modified_name: &str = "modified name";
+		const ORIGINAL_NAME: &str = "original name";
+		const MODIFIED_NAME: &str = "modified name";
 		
-		applicant.set_applicant_name(original_name);
-		assert_eq!(applicant.get_applicant_name(), original_name);
+		applicant.set_applicant_name(ORIGINAL_NAME);
+		assert_eq!(applicant.get_applicant_name(), ORIGINAL_NAME);
 
-		applicant.set_applicant_name(modified_name);
-		assert_eq!(applicant.get_applicant_name(), modified_name);
+		applicant.set_applicant_name(MODIFIED_NAME);
+		assert_eq!(applicant.get_applicant_name(), MODIFIED_NAME);
 	}
 
 	#[test]
 	fn set_applicant_gpa() {
 		let mut applicant = Applicant::new();
 
-		const original_gpa: f64 = 4.0;
-		const modified_gpa: f64 = 3.0;
+		const ORIGINAL_GPA: f64 = 4.0;
+		const CURRENT_GPA: f64 = 3.0;
 
-		applicant.set_applicant_gpa(original_gpa);
-		assert_eq!(applicant.get_applicant_gpa(), original_gpa);
+		applicant.set_applicant_gpa(ORIGINAL_GPA);
+		assert_eq!(applicant.get_applicant_gpa(), ORIGINAL_GPA);
 
-		applicant.set_applicant_gpa(modified_gpa);
-		assert_eq!(applicant.get_applicant_gpa(), modified_gpa);
+		applicant.set_applicant_gpa(CURRENT_GPA);
+		assert_eq!(applicant.get_applicant_gpa(), CURRENT_GPA);
 	}
 	
 	#[test]
 	fn set_applicant_college() {
 		let mut applicant = Applicant::new();
 
-		const original_college: &str = "Harvard";
-		const current_college: &str = "BMCC";
+		const ORIGINAL_COLLEGE: &str = "Harvard";
+		const CURRENT_COLLEGE: &str = "BMCC";
 
-		applicant.set_applicant_college(original_college);
-		assert_eq!(applicant.get_applicant_college(), original_college);
+		applicant.set_applicant_college(ORIGINAL_COLLEGE);
+		assert_eq!(applicant.get_applicant_college(), ORIGINAL_COLLEGE);
 
-		applicant.set_applicant_college(current_college);
-		assert_eq!(applicant.get_applicant_college(), current_college);
+		applicant.set_applicant_college(CURRENT_COLLEGE);
+		assert_eq!(applicant.get_applicant_college(), CURRENT_COLLEGE);
 	}
 	
 	#[test]
