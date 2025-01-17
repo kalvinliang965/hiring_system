@@ -44,15 +44,28 @@ impl HiringTable {
 		None
 	}
 	
-	fn print_applicant_table() {
-		todo!();
+	fn print_applicant_table(&self) {
+		println!("{:<40} {:<20} {:<6} {:<20} {:<40}",
+			"Company Name",
+			"Applicant",
+			"GPA",
+			"College",
+			"Skills",
+		);
+		println!("{}", "_".repeat(40 + 20 + 6 + 20 + 40));
+
+		for applicant in &self.data {
+			println!("{}", &applicant);
+		}
 	}
 
 }
 
 impl Clone for HiringTable {
 	fn clone(&self)->Self {
-		todo!();
+		HiringTable {
+			data: self.data.clone()
+		}	
 	}
 }
 
@@ -77,10 +90,65 @@ mod tests {
 			"Stony Brook",
 			vec!["java".to_string(), "python".to_string()]
 		);
-
+		
 		let applicant_clone = applicant.clone();
 		hiring_table.add_applicant(applicant);
+		hiring_table.print_applicant_table();
 		assert_eq!(hiring_table.data, vec![applicant_clone]);
+	}
+
+	#[test]
+	fn size_of_hiring_table() {
+		let mut hiring_table = HiringTable::new();
+		let applicant = Applicant::from(
+			vec!["facebook".to_string(), "meta".to_string()],
+			"Tommy",
+			3.2,
+			"Stony Brook",
+			vec!["java".to_string(), "python".to_string()]
+		);
+		hiring_table.add_applicant(applicant);
+		println!("After adding");
+		hiring_table.print_applicant_table();
+		assert_eq!(hiring_table.size(), 1);
+	}
+	#[test]
+	fn remove_applicant() {
+		let mut hiring_table = HiringTable::new();
+		let applicant = Applicant::from(
+			vec!["facebook".to_string(), "meta".to_string()],
+			"Tommy",
+			3.2,
+			"Stony Brook",
+			vec!["java".to_string(), "python".to_string()]
+		);
+		hiring_table.add_applicant(applicant);
+		println!("After adding");
+		hiring_table.print_applicant_table();
+		
+		hiring_table.remove_applicant("Tommy");
+		println!("After Removing: ");
+		hiring_table.print_applicant_table();
+		assert_eq!(hiring_table.size(), 0);
+	}
+
+	#[test]
+	fn clone_hiring_table() {
+
+		let mut hiring_table1 = HiringTable::new();
+		let applicant = Applicant::from(
+			vec!["facebook".to_string(), "meta".to_string()],
+			"Tommy",
+			3.2,
+			"Stony Brook",
+			vec!["java".to_string(), "python".to_string()]
+		);
+		hiring_table1.add_applicant(applicant);
+
+		let mut hiring_table2 = hiring_table1.clone();
+		hiring_table2.remove_applicant("Tommy");
+		assert_eq!(hiring_table1.size(), 1);
+		assert_eq!(hiring_table2.size(), 0);
 	}
 
 }
