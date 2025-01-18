@@ -5,8 +5,8 @@ mod hiring_table;
 
 pub use applicant::Applicant;
 pub use hiring_table::HiringTable; 
-
 use std::io::{self, Write};
+use std::process;
 
 fn menu() {
 	println!("(A) Add Applicant");
@@ -22,11 +22,92 @@ fn menu() {
 }
 
 
-fn hs_add_applicant() -> Result<(), String> {
+fn read_line(prompt: &str) -> Result<String, String> {
+	print!("{}: ", prompt);
+	io::stdout().flush().map_err(|e| e.to_string())?;
+	let mut input = String::new();
+	io::stdin().read_line(&mut input).map_err(|e| e.to_string())?;
+	Ok(input.trim().to_string())
+}
+
+fn read_float(prompt: &str) -> Result<f64, String> {
+	print!("{}: ", prompt);
+	let mut input = String::new();
+	io::stdout().flush().map_err(|e| e.to_string())?;
+	io::stdin().read_line(&mut input).map_err(|e| e.to_string())?; 
+	match input.trim().parse::<f64>() {
+		Ok(value) => Ok(value),
+		Err(_) => Err("Invalid number format. Please enter a valid float".to_string()),
+	}
+}
+
+fn hs_add_applicant(hs_table: &mut HiringTable) -> Result<(), String> {
 	#[cfg(debug_assertions)]
 	{
 		println!("DEBUG: Add applicant");
 	}
+	
+	if hs_table.size() >= HiringTable::MAX_APPLICANTS.into() {
+		return Err("The maximum number of applicants has been reached".to_string());
+	}
+
+	// applicant name input
+	let applicant_name = match read_line("Enter Applicant Name") {
+		Ok(name) => name,
+		Err(err) => { 
+			return Err(format!("Error in reading applicant name: {}", err));
+		}
+	};
+
+	let applicant_gpa = match read_float("Enter Applicant GPA") {
+		Ok(gpa) => gpa,
+		Err(err) => {
+			return Err(format!("Error in reading applicant gpa: {}", err));
+		}
+	};
+	
+	// college input
+	let applicant_college = match read_line("Enter applicant college") {
+		Ok(college) => college,
+		Err(err) => {
+			return Err(format!("Error in reading applicant colelge: {}", err));
+		}
+	};
+
+	let mut num_companies = HiringTable::MAX_COMPANIES;
+	let mut company_name = Vec::new();
+	while num_companies > 0 {
+		match read_line(&format!("Enter up to {} Companies", num_companies)) {
+			Ok(company) => if company.len() > 0 {company_name.push(company)} else {},
+			Err(err) => {
+				return Err(format!("Error in reading company name: {}", err));
+			}
+		};
+		num_companies -= 1;
+	}
+	
+	let mut num_skills = HiringTable::MAX_SKILLS;
+	let mut applicant_skills = Vec::new();
+	while num_skills > 0 {
+		match read_line(&format!("Enter up to {} Skills", num_skills)) {
+			Ok(skill) => if skill.len() > 0 {applicant_skills.push(skill)} else {},
+			Err(err) => {
+				return Err(format!("Error in reading applicant skill: {}", err));
+			}
+		};
+		num_skills -= 1;
+	}
+	
+	let applicant = Applicant::from(
+		company_name,
+		&applicant_name,
+		applicant_gpa,
+		&applicant_college,
+		applicant_skills,
+	);
+
+	hs_table.add_applicant(applicant);
+
 	Ok(())
 }
 
@@ -44,7 +125,7 @@ fn hs_get_applicant() -> Result<(), String> {
 	}
 	Ok(())
 }
-fn hs_print_list() -> Result<(), String> {
+fn hs_print_list(hs_table: &HiringTable) -> Result<(), String> {
 	#[cfg(debug_assertions)]
 	{
 		println!("DEBUG: Print List");
@@ -87,10 +168,18 @@ fn hs_revert_backup() -> Result<(), String> {
 	Ok(())
 }
 pub fn main() -> Result<(), String> {
+	
+	let mut hs_table = HiringTable::new();
+	// contain different version of hs_table
+	let mut backup_table: Vec<HiringTable>  = Vec::new();
+	// version of current hiring table
+	let mut version = 0;
 
 	'simulation: loop {
-		let mut command = String::new();
+		
+		menu();
 
+		let mut command = String::new();
 		print!("Please enter a command: ");
 		io::stdout().flush().unwrap();
 
@@ -104,13 +193,13 @@ pub fn main() -> Result<(), String> {
 
 		match parse_command {
 			"A" => {
-				if let Err(err) = hs_add_applicant() {
-					return Err(err);
+				if let Err(err) = hs_add_applicant(&mut hs_table) {
+					eprintln!(err);
 				}
 			}
 			"R" => {
 				if let Err(err) = hs_remove_applicant() {
-					return Err(err);
+					eprintln!(err);
 				}
 			}
 			"G" => { 
@@ -118,11 +207,7 @@ pub fn main() -> Result<(), String> {
 					return Err(err);
 				}
 			}
-			"P" => { 
-				if let Err(err) = hs_print_list() {
-					return Err(err);
-				}
-			}
+			"P" => hs_table.print_applicant_table();
 			"RS" => {
 				if let Err(err) = hs_refine_search() {
 					return Err(err);

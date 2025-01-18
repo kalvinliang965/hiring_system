@@ -6,35 +6,47 @@ pub struct HiringTable {
 
 impl HiringTable {
 	
-	const MAX_SKILLS: u8 = 3;
-	const MAX_COMPANIES: u8 = 3;
-	const MAX_APPLICATIONS: u8 = 50;
+	pub const MAX_SKILLS: u8 = 3;
+	pub const MAX_COMPANIES: u8 = 3;
+	pub const MAX_APPLICANTS: u8 = 50;
 	
-	fn new() -> Self {
+	pub fn new() -> Self {
 		HiringTable {
 			data: Vec::new()
 		}
 	}
 
-	fn refine_search(table: Self, company: String, 
+	pub fn refine_search(table: Self, company: String, 
 		skill: String, college: String, gpa: f64) {
 		
 		todo!();
 	}
 
-	fn size(&self) -> usize {
+	pub fn size(&self) -> usize {
 		self.data.len()
 	}
 
-	fn add_applicant(&mut self, new_applicant: Applicant) {
+	pub fn add_applicant(&mut self, new_applicant: Applicant)  {
+		if new_applicant.get_applicant_skills().len() > HiringTable::MAX_SKILLS.into() {
+			panic!("The applicant has exceeded the maximum number of skills allowed");
+		}
+
+		if new_applicant.get_company_name().len() > HiringTable::MAX_COMPANIES.into() {
+			panic!("The applicant has exceed the maximum number of companies allowed");
+		}
+
+		if self.size() > HiringTable::MAX_APPLICANTS.into() {
+			panic!("The maximum number of applicants has been reached");
+		}
+		
 		self.data.push(new_applicant);
 	}
 
-	fn remove_applicant(&mut self, name: &str) {
+	pub fn remove_applicant(&mut self, name: &str) {
 		self.data.retain(|applicant| applicant.get_applicant_name() != name);
 	}
 
-	fn get_applicant(&self, name: String) -> Option<&Applicant> {
+	pub fn get_applicant(&self, name: String) -> Option<&Applicant> {
 		for applicant in &self.data {
 			if applicant.get_applicant_name() == name {
 				return Some(applicant)
@@ -43,7 +55,7 @@ impl HiringTable {
 		None
 	}
 	
-	fn print_applicant_table(&self) {
+	pub fn print_applicant_table(&self) {
 		println!("{:<40} {:<20} {:<6} {:<20} {:<40}",
 			"Company Name",
 			"Applicant",
