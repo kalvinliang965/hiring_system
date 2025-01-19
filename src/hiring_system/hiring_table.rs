@@ -1,5 +1,6 @@
 use super::applicant::Applicant;
 
+#[derive(PartialEq)]
 pub struct HiringTable {
 	data: Vec<Applicant>,
 }
@@ -28,22 +29,32 @@ impl HiringTable {
 
 	pub fn add_applicant(&mut self, new_applicant: Applicant)  {
 		if new_applicant.get_applicant_skills().len() > HiringTable::MAX_SKILLS.into() {
-			panic!("The applicant has exceeded the maximum number of skills allowed");
+			panic!("add_applicant: The applicant has exceeded the maximum number of skills allowed");
 		}
 
 		if new_applicant.get_company_name().len() > HiringTable::MAX_COMPANIES.into() {
-			panic!("The applicant has exceed the maximum number of companies allowed");
+			panic!("add_applicant: The applicant has exceed the maximum number of companies allowed");
 		}
 
 		if self.size() > HiringTable::MAX_APPLICANTS.into() {
-			panic!("The maximum number of applicants has been reached");
+			panic!("add_applicant: The maximum number of applicants has been reached");
 		}
 		
 		self.data.push(new_applicant);
 	}
 
-	pub fn remove_applicant(&mut self, name: &str) {
-		self.data.retain(|applicant| applicant.get_applicant_name() != name);
+	pub fn remove_applicant(&mut self, name: &str) -> Option<Applicant>{
+		if self.size() == 0 {
+			panic!("remove_applicant: currently has no applicant");
+		}
+
+		for (index, applicant) in self.data.iter().enumerate() {
+			if applicant.get_applicant_name() == name {
+				return Some(self.data.remove(index));
+
+			}			
+		}
+		None
 	}
 
 	pub fn get_applicant(&self, name: String) -> Option<&Applicant> {
