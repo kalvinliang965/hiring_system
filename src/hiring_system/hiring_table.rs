@@ -17,8 +17,52 @@ impl HiringTable {
 		}
 	}
 
-	pub fn refine_search(table: Self, company: String, 
+
+	
+	fn filter_applicant(table: &Self, company: Option<String>,
+		skill: Option<String>, college: Option<String>, gpa: Option<f64>) -> Vec<&Applicant> {
+		
+		let company_cond = |applicant: &Applicant| {
+			match company {
+				None => true,
+				Some(company) => applicant.get_company_name().contains(&company),
+			}
+		};
+
+		let skill_cond = |applicant: &Applicant| {
+			match skill {
+				None => true,
+				Some(skill) => applicant.get_applicant_skills().contains(&skill),
+			}
+		};
+		let college_cond = |applicant: &Applicant| {
+			match college {
+				None => true,
+				Some(college) => applicant.get_applicant_college() == college,
+			}
+		};
+		let gpa_cond = |applicant: &Applicant| {
+			match gpa {
+				None => true,
+				Some(gpa) => applicant.get_applicant_gpa() == gpa,
+			}
+		};
+		
+		table.data.iter()
+			.filter(|applicant| {
+				company_cond.clone()(&applicant) &&
+				skill_cond.clone()(&applicant) &&
+				college_cond.clone()(&applicant) &&
+				gpa_cond.clone()(&applicant)
+			}).collect::<Vec<&Applicant>>() 
+	}
+
+	pub fn refine_search(table: &Self, company: String, 
 		skill: String, college: String, gpa: f64) {
+
+		HiringTable::print_table_header();
+		
+	
 		
 		todo!();
 	}
@@ -65,8 +109,7 @@ impl HiringTable {
 		}
 		None
 	}
-	
-	pub fn print_applicant_table(&self) {
+	fn print_table_header() {
 		println!("{:<40} {:<20} {:<6} {:<20} {:<40}",
 			"Company Name",
 			"Applicant",
@@ -75,7 +118,9 @@ impl HiringTable {
 			"Skills",
 		);
 		println!("{}", "_".repeat(40 + 20 + 6 + 20 + 40));
-
+	}	
+	pub fn print_applicant_table(&self) {
+		HiringTable::print_table_header();	
 		for applicant in &self.data {
 			println!("{}", &applicant);
 		}
@@ -171,6 +216,53 @@ mod tests {
 		hiring_table2.remove_applicant("Tommy");
 		assert_eq!(hiring_table1.size(), 1);
 		assert_eq!(hiring_table2.size(), 0);
+	}
+
+
+	#[test]
+	fn filter_appliant_test() {
+		
+		let applicants = vec![
+			Applicant {
+				company_name: vec!["Company A"],
+				applicant_skills: vec!["Rust".to_string()],
+				applicant_college: "College X".to_string(),
+				applicant_gpa: 3.7,
+			},
+			
+			Applicant {
+				company_name: vec!["Company B".to_string()],
+				applicant_skills: vec!["Python".to_string()],
+				applicant_college: "College Y".to_string(),
+				applicant_gpa: 3.5,
+			},
+			Applicant {
+				company_name: vec!["Company A".to_string()],
+				applicant_skills: vec!["Rust".to_string()],
+				applicant_college: "College X".to_string(),
+				applicant_gpa: 3.9,
+			},
+
+		];
+
+		let table = HiringTable {
+			data: applicants,
+		};
+
+		let filtered = HiringTable::filter_applicant(
+			&table,
+			Some("Company A".to_string()),
+			Some("Rust".to_string()),
+			None,
+			None,
+		);
+
+		for applicant in filtered {
+			println!("{}", applicant);
+		}
+		assert_eq!(filtered.len(), 2)
+
+
 	}
 
 }
