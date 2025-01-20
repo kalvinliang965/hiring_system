@@ -23,20 +23,20 @@ impl HiringTable {
 		skill: Option<String>, college: Option<String>, gpa: Option<f64>) -> Vec<&Applicant> {
 		
 		let company_cond = |applicant: &Applicant| {
-			match company {
+			match &company {
 				None => true,
 				Some(company) => applicant.get_company_name().contains(&company),
 			}
 		};
 
 		let skill_cond = |applicant: &Applicant| {
-			match skill {
+			match &skill {
 				None => true,
 				Some(skill) => applicant.get_applicant_skills().contains(&skill),
 			}
 		};
 		let college_cond = |applicant: &Applicant| {
-			match college {
+			match &college {
 				None => true,
 				Some(college) => applicant.get_applicant_college() == college,
 			}
@@ -50,10 +50,10 @@ impl HiringTable {
 		
 		table.data.iter()
 			.filter(|applicant| {
-				company_cond.clone()(&applicant) &&
-				skill_cond.clone()(&applicant) &&
-				college_cond.clone()(&applicant) &&
-				gpa_cond.clone()(&applicant)
+				company_cond(applicant) &&
+				skill_cond(applicant) &&
+				college_cond(applicant) &&
+				gpa_cond(applicant)
 			}).collect::<Vec<&Applicant>>() 
 	}
 
@@ -223,25 +223,28 @@ mod tests {
 	fn filter_appliant_test() {
 		
 		let applicants = vec![
-			Applicant {
-				company_name: vec!["Company A"],
-				applicant_skills: vec!["Rust".to_string()],
-				applicant_college: "College X".to_string(),
-				applicant_gpa: 3.7,
-			},
+			Applicant::from (
+				vec!["Company A".to_string()],
+				"PersonA",
+				3.7,
+				"College X",
+				vec!["Rust".to_string()],
+			),
 			
-			Applicant {
-				company_name: vec!["Company B".to_string()],
-				applicant_skills: vec!["Python".to_string()],
-				applicant_college: "College Y".to_string(),
-				applicant_gpa: 3.5,
-			},
-			Applicant {
-				company_name: vec!["Company A".to_string()],
-				applicant_skills: vec!["Rust".to_string()],
-				applicant_college: "College X".to_string(),
-				applicant_gpa: 3.9,
-			},
+			Applicant::from (
+				vec!["Company B".to_string()],
+				"PersonB",
+				3.5,
+				"College Y",
+				vec!["Python".to_string()],
+			),
+			Applicant::from (
+				vec!["Company A".to_string()],
+				"PersonC",
+				3.9,
+				"College X",
+				vec!["Rust".to_string()],
+			),
 
 		];
 
@@ -257,7 +260,7 @@ mod tests {
 			None,
 		);
 
-		for applicant in filtered {
+		for applicant in &filtered {
 			println!("{}", applicant);
 		}
 		assert_eq!(filtered.len(), 2)
