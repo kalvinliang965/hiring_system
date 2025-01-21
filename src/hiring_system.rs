@@ -163,7 +163,7 @@ fn hs_get_applicant(hs_table: &HiringTable) -> Result<(), String> {
 		}
 	};
 
-	match hs_table.get_applicant(applicant_name) {
+	match hs_table.get_applicant(&applicant_name) {
 		None => {
 			println!("Applicant does not exist");
 		},
@@ -190,6 +190,32 @@ fn hs_refine_search() -> Result<(), String> {
 	{
 		println!("DEBUG: Refine Search");
 	}
+
+	let company_filter = match read_line("Enter a company to filter for") {
+		Ok(company_name) => Some(company_name),
+		Err(err) => {
+			return Err(format!("Error in retrieving company name: {}", err));
+		}
+	};
+	let skill_filter = match read_line("Enter a skill to filter for") {
+		Ok(skill) => Some(skill),
+		Err(err) => {
+			return Err(format!("Error in retrieving skill: {}", err));
+		}
+	};
+	let college_filter = match read_line("Enter a college to filter for") {
+		Ok(college_name) => Some(college_name),
+		Err(err) => {
+			return Err(format!("Error in retrieving college name: {}", err));
+		}
+	};
+	let min_gpa_filter = match read_line("Enter the minimum GPA  to filter for") {
+		Ok(min_gpa) => Some(min_gpa),
+		Err(err) => {
+			return Err(format!("Error in retrieving min_gpa: {}", err));
+		}
+	};
+
 	Ok(())
 }
 fn hs_size(hs_table: &HiringTable) -> Result<(), String> {

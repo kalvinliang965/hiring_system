@@ -1,6 +1,6 @@
 use super::applicant::Applicant;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub struct HiringTable {
 	data: Vec<Applicant>,
 }
@@ -19,24 +19,32 @@ impl HiringTable {
 
 
 	
-	fn filter_applicant(table: &Self, company: Option<String>,
-		skill: Option<String>, college: Option<String>, gpa: Option<f64>) -> Vec<&Applicant> {
+	pub fn filter_applicant<'a >(table: &'a Self, company: Option<&str>,
+		skill: Option<&str>, college: Option<&str>, gpa: Option<f64>) -> Vec<&'a Applicant> {
 		
 		let company_cond = |applicant: &Applicant| {
-			match &company {
+			match company {
 				None => true,
-				Some(company) => applicant.get_company_name().contains(&company),
+				Some(company) => applicant.get_company_name()
+									.iter()
+									.map(|s| s.as_str())
+									.collect::<Vec<&str>>()
+									.contains(&company),
 			}
 		};
 
 		let skill_cond = |applicant: &Applicant| {
-			match &skill {
+			match skill {
 				None => true,
-				Some(skill) => applicant.get_applicant_skills().contains(&skill),
+				Some(skill) => applicant.get_applicant_skills()
+									.iter()
+									.map(|s| s.as_str())
+									.collect::<Vec<&str>>()
+									.contains(&skill),
 			}
 		};
 		let college_cond = |applicant: &Applicant| {
-			match &college {
+			match college {
 				None => true,
 				Some(college) => applicant.get_applicant_college() == college,
 			}
@@ -44,7 +52,7 @@ impl HiringTable {
 		let gpa_cond = |applicant: &Applicant| {
 			match gpa {
 				None => true,
-				Some(gpa) => applicant.get_applicant_gpa() == gpa,
+				Some(gpa) => applicant.get_applicant_gpa() >= gpa,
 			}
 		};
 		
@@ -57,14 +65,13 @@ impl HiringTable {
 			}).collect::<Vec<&Applicant>>() 
 	}
 
-	pub fn refine_search(table: &Self, company: String, 
-		skill: String, college: String, gpa: f64) {
-
+	pub fn refine_search(table: &Self, company: Option<&str>, 
+		skill: Option<&str>, college: Option<&str>, gpa: Option<f64>) {
+		
 		HiringTable::print_table_header();
-		
-	
-		
-		todo!();
+		for applicant in HiringTable::filter_applicant(table, company, skill, college, gpa){
+			println!("{}", applicant);
+		}
 	}
 
 	pub fn size(&self) -> usize {
@@ -101,7 +108,7 @@ impl HiringTable {
 		None
 	}
 
-	pub fn get_applicant(&self, name: String) -> Option<&Applicant> {
+	pub fn get_applicant(&self, name: &str) -> Option<&Applicant> {
 		for applicant in &self.data {
 			if applicant.get_applicant_name() == name {
 				return Some(applicant)
@@ -254,8 +261,8 @@ mod tests {
 
 		let filtered = HiringTable::filter_applicant(
 			&table,
-			Some("Company A".to_string()),
-			Some("Rust".to_string()),
+			Some("Company A"),
+			Some("Rust"),
 			None,
 			None,
 		);
