@@ -6,7 +6,6 @@ mod hiring_table;
 pub use applicant::Applicant;
 pub use hiring_table::HiringTable; 
 use std::io::{self, Write};
-use std::process;
 
 fn menu() {
 	println!("(A) Add Applicant");
@@ -15,7 +14,7 @@ fn menu() {
 	println!("(P) Print List");
 	println!("(RS) Refine Search");
 	println!("(S) Size");
-	println!("(D) Backup");
+	println!("(B) Backup");
 	println!("(CB) Compare Backup");
 	println!("(RB) Revert Backup");
 	println!("(Q) Quit");
@@ -89,7 +88,7 @@ fn hs_add_applicant(hs_table: &mut HiringTable) -> Result<(), String> {
 	let mut company_name = Vec::new();
 	while num_companies > 0 {
 		match read_line(&format!("Enter up to {} Companies", num_companies)) {
-			Ok(company) => if company.len() > 0 {company_name.push(company)} else {},
+			Ok(company) => if company.len() > 0 {company_name.push(company)} else { break },
 			Err(err) => {
 				return Err(format!("Error in reading company name: {}", err));
 			}
@@ -101,7 +100,7 @@ fn hs_add_applicant(hs_table: &mut HiringTable) -> Result<(), String> {
 	let mut applicant_skills = Vec::new();
 	while num_skills > 0 {
 		match read_line(&format!("Enter up to {} Skills", num_skills)) {
-			Ok(skill) => if skill.len() > 0 {applicant_skills.push(skill)} else {},
+			Ok(skill) => if skill.len() > 0 {applicant_skills.push(skill)} else { break },
 			Err(err) => {
 				return Err(format!("Error in reading applicant skill: {}", err));
 			}
@@ -118,7 +117,7 @@ fn hs_add_applicant(hs_table: &mut HiringTable) -> Result<(), String> {
 	);
 
 	hs_table.add_applicant(applicant);
-
+	println!("Applicant {} has been successfully added to the hiring system.", applicant_name);
 	Ok(())
 }
 
@@ -183,39 +182,76 @@ fn hs_print_list(hs_table: &HiringTable) -> Result<(), String> {
 	{
 		println!("DEBUG: Print List");
 	}
+	hs_table.print_applicant_table();
 	Ok(())
 }
-fn hs_refine_search() -> Result<(), String> {
+fn hs_refine_search(hs_table: &HiringTable) -> Result<(), String> {
 	#[cfg(debug_assertions)]
 	{
 		println!("DEBUG: Refine Search");
 	}
 
 	let company_filter = match read_line("Enter a company to filter for") {
-		Ok(company_name) => Some(company_name),
+		Ok(company_name) => {
+			if company_name.len() == 0 {
+				None
+			} else {
+				Some(company_name)
+			}
+		},
 		Err(err) => {
 			return Err(format!("Error in retrieving company name: {}", err));
 		}
 	};
 	let skill_filter = match read_line("Enter a skill to filter for") {
-		Ok(skill) => Some(skill),
+		Ok(skill) => {
+			if skill.len() == 0 {
+				None
+			} else {
+				Some(skill)
+			}
+		}
 		Err(err) => {
 			return Err(format!("Error in retrieving skill: {}", err));
 		}
 	};
 	let college_filter = match read_line("Enter a college to filter for") {
-		Ok(college_name) => Some(college_name),
+		Ok(college_name) => {
+			if college_name.len() == 0 {
+				None
+			} else {
+				Some(college_name)
+			}
+		},
 		Err(err) => {
 			return Err(format!("Error in retrieving college name: {}", err));
 		}
 	};
 	let min_gpa_filter = match read_line("Enter the minimum GPA  to filter for") {
-		Ok(min_gpa) => Some(min_gpa),
+		Ok(min_gpa) => {
+			if min_gpa.len() == 0 {
+				None
+			} else {
+				match min_gpa.parse::<f64>() {
+					Ok(min_gpa) => Some(min_gpa),
+					Err(err) => {
+						return Err(format!("the minimum gpa is in invalid format: {}", err));
+					},
+				}
+			}
+		},
 		Err(err) => {
 			return Err(format!("Error in retrieving min_gpa: {}", err));
 		}
 	};
 
+	HiringTable::refine_search(
+		hs_table, 
+		company_filter.as_deref(), 
+		skill_filter.as_deref(), 
+		college_filter.as_deref(), 
+		min_gpa_filter,
+	);
 	Ok(())
 }
 fn hs_size(hs_table: &HiringTable) -> Result<(), String> {
@@ -225,9 +261,9 @@ fn hs_size(hs_table: &HiringTable) -> Result<(), String> {
 	}
 	
 	if hs_table.size() == 1 {
-		println!("There are {} applicant", hs_table.size());
+		println!("There are {} applicant in the hiring system.", hs_table.size());
 	} else {
-		println!("There are {} applicants", hs_table.size()); 
+		println!("There are {} applicants in the hiring system.", hs_table.size()); 
 	}
 
 	Ok(())
@@ -299,6 +335,7 @@ fn hs_revert_backup(hs_table: &mut HiringTable, backup_table: &Vec<HiringTable>)
 	};
 
 	*hs_table = backup_table[version].clone();
+	println!("Successfully reverted to the backup copy.");
 	Ok(())
 }
 pub fn main() -> Result<(), String> {
@@ -327,46 +364,53 @@ pub fn main() -> Result<(), String> {
 		match parse_command {
 			"A" => {
 				if let Err(err) = hs_add_applicant(&mut hs_table) {
-					eprintln!("{}", err);
+					eprintln!("hs_add_pplicant: {}", err);
 				}
 			}
 			"R" => {
 				if let Err(err) = hs_remove_applicant(&mut hs_table) {
-					eprintln!("{}", err);
+					eprintln!("hs_remove_applicant: {}", err);
 				}
 			}
 			"G" => { 
 				if let Err(err) = hs_get_applicant(&hs_table) {
-					eprintln!("{}", err);
+					eprintln!("hs_get_applicant: {}", err);
 				}
 			}
-			"P" => hs_table.print_applicant_table(),
+			"P" => {
+				if let Err(err) = hs_print_list(&hs_table) {
+					eprintln!("hs_print_list: {}", err);
+				}
+			} 
 			"RS" => {
-				if let Err(err) = hs_refine_search() {
-					return Err(err);
+				if let Err(err) = hs_refine_search(&hs_table) {
+					eprintln!("hs_refine_search: {}", err);
 				}
 			}
 			"S" => {
 				if let Err(err) = hs_size(&hs_table) {
-					eprintln!("{}", err);	
+					eprintln!("hs_size: {}", err);	
 				}
 			}
-			"D" => {
+			"B" => {
 				if let Err(err) = hs_backup(&hs_table, &mut backup_table) {
-					eprintln!("{}", err);
+					eprintln!("hs_backup: {}", err);
 				}
 			}
 			"CB" => {
 				if let Err(err) = hs_compare_backup(&hs_table, &backup_table) {
-					eprintln!("{}", err);
+					eprintln!("hs_compare_backup: {}", err);
 				}
 			}
 			"RB" => {
 				if let Err(err) = hs_revert_backup(&mut hs_table, &backup_table) {
-					eprintln!("{}", err);	
+					eprintln!("hs_revert_backup: {}", err);	
 				}
 			}
-			"Q" => 	break 'simulation,
+			"Q" => 	{
+				println!("Quitting program...");
+				break 'simulation;
+			},
 			_  => {
 				println!("Command enter: {parse_command}");
 				println!("Invalid command");
